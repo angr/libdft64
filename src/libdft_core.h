@@ -42,4 +42,8 @@ void ins_inspect(INS);
 /* REG INDEX API*/
 size_t REG_INDX(REG);
 
+#define VCPU_MASK32	0x0F	/* 32-bit VCPU mask */
+#define VCPU_MASK16	0x03	/* 16-bit VCPU mask */
+#define VCPU_MASK8	0x01	/* 8-bit VCPU mask */
+
 #endif /* __LIBDFT_CORE_H__ */
