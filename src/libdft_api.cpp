@@ -493,3 +493,141 @@ int ins_clr_post(syscall_desc_t *desc) {
   /* return with success */
   return 0;
 }
+
+/*
+ * REG-to-VCPU map;
+ * get the register index in the VCPU structure
+ * given a PIN register (32-bit regs)
+ *
+ * @reg:	the PIN register
+ * returns:	the index of the register in the VCPU
+ */
+size_t REG32_INDX(REG reg) {
+	/* result; for the 32-bit registers the mapping is easy */
+	size_t indx = reg - (LEVEL_BASE::REG_EAX-GPR_EAX);
+
+	/*
+	 * sanity check;
+	 * unknown registers are mapped to the scratch
+	 * register of the VCPU
+	 */
+	if (unlikely(indx > GPR_NUM))
+		indx = GPR_NUM;
+
+	/* return the index */
+	return indx;
+}
+
+/*
+ * REG-to-VCPU map;
+ * get the register index in the VCPU structure
+ * given a PIN register (16-bit regs)
+ *
+ * @reg:	the PIN register
+ * returns:	the index of the register in the VCPU
+ */
+size_t REG16_INDX(REG reg) {
+	/*
+	 * differentiate based on the register;
+	 * we map the 16-bit registers to their 32-bit
+	 * containers (e.g., AX -> EAX)
+	 */
+	switch (reg) {
+		/* di */
+		case REG_DI:
+			return 0;
+			/* not reached; safety */
+			break;
+		/* si */
+		case REG_SI:
+			return 1;
+			/* not reached; safety */
+			break;
+		/* bp */
+		case REG_BP:
+			return 2;
+			/* not reached; safety */
+			break;
+		/* sp */
+		case REG_SP:
+			return 3;
+			/* not reached; safety */
+			break;
+		/* bx */
+		case REG_BX:
+			return 4;
+			/* not reached; safety */
+			break;
+		/* dx */
+		case REG_DX:
+			return 5;
+			/* not reached; safety */
+			break;
+		/* cx */
+		case REG_CX:
+			return 6;
+			/* not reached; safety */
+			break;
+		/* ax */
+		case REG_AX:
+			return 7;
+			/* not reached; safety */
+			break;
+		default:
+			/*
+			 * paranoia;
+			 * unknown 16-bit registers are mapped
+			 * to the scratch register of the VCPU
+			 */
+			return 8;
+	}
+}
+
+/*
+ * REG-to-VCPU map;
+ * get the register index in the VCPU structure
+ * given a PIN register (8-bit regs)
+ *
+ * @reg:	the PIN register
+ * returns:	the index of the register in the VCPU
+ */
+size_t REG8_INDX(REG reg) {
+	/*
+	 * differentiate based on the register;
+	 * we map the 8-bit registers to their 32-bit
+	 * containers (e.g., AH -> EAX)
+	 */
+	switch (reg) {
+		/* ah/al */
+		case REG_AH:
+		case REG_AL:
+			return 7;
+			/* not reached; safety */
+			break;
+		/* ch/cl */
+		case REG_CH:
+		case REG_CL:
+			return 6;
+			/* not reached; safety */
+			break;
+		/* dh/dl */
+		case REG_DH:
+		case REG_DL:
+			return 5;
+			/* not reached; safety */
+			break;
+		/* bh/bl */
+		case REG_BH:
+		case REG_BL:
+			return 4;
+			/* not reached; safety */
+			break;
+		default:
+			/*
+			 * paranoia;
+			 * unknown 8-bit registers are mapped
+			 * to the scratch register
+			 */
+			return 8;
+	}
+}

@@ -88,4 +88,11 @@ int ins_clr_pre(ins_desc_t *);
 int ins_set_post(ins_desc_t *, void (*)(INS));
 int ins_clr_post(ins_desc_t *);
 
+size_t REG8_INDX(REG reg);
+size_t REG16_INDX(REG reg);
+size_t REG32_INDX(REG reg);
+enum gpr {GPR_EDI, GPR_ESI, GPR_EBP, GPR_ESP, GPR_EBX, GPR_EDX, GPR_ECX, GPR_EAX, GPR_SCRATCH};
+#define GPR_NUM   	8			/* general purpose registers */
+#define XMM_NUM   	8
+
 #endif /* __LIBDFT_API_H__ */
