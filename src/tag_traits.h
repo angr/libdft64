@@ -32,6 +32,7 @@ typedef lb_type libdft_bdd_tag;
 template <> struct tag_traits<lb_type> {
   typedef lb_type type;
   static lb_type cleared_val;
+  static const uint8_t set_val;
 };
 
 template <> lb_type tag_combine(lb_type const &lhs, lb_type const &rhs);
