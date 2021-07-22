@@ -360,7 +360,7 @@ dta_instrument_ret(INS ins)
  * read(2) handler (taint-source)
  */
 static void
-post_read_hook(syscall_ctx_t *ctx)
+post_read_hook(THREADID tid, syscall_ctx_t *ctx)
 {
         /* read() was not successful; optimized branch */
         if (unlikely((long)ctx->ret <= 0))
@@ -379,7 +379,7 @@ post_read_hook(syscall_ctx_t *ctx)
  * readv(2) handler (taint-source)
  */
 static void
-post_readv_hook(syscall_ctx_t *ctx)
+post_readv_hook(THREADID tid, syscall_ctx_t *ctx)
 {
 	/* iterators */
 	int i;
@@ -428,7 +428,7 @@ post_readv_hook(syscall_ctx_t *ctx)
  * the monitored set
  */
 static void
-post_dup_hook(syscall_ctx_t *ctx)
+post_dup_hook(THREADID tid, syscall_ctx_t *ctx)
 {
 	/* not successful; optimized branch */
 	if (unlikely((long)ctx->ret < 0))
@@ -451,7 +451,7 @@ post_dup_hook(syscall_ctx_t *ctx)
  * inside the monitored set of descriptors
  */
 static void
-post_close_hook(syscall_ctx_t *ctx)
+post_close_hook(THREADID tid, syscall_ctx_t *ctx)
 {
 	/* iterator */
 	set<int>::iterator it;
@@ -481,7 +481,7 @@ post_close_hook(syscall_ctx_t *ctx)
  * libraries
  */
 static void
-post_open_hook(syscall_ctx_t *ctx)
+post_open_hook(THREADID tid, syscall_ctx_t *ctx)
 {
 	/* not successful; optimized branch */
 	if (unlikely((long)ctx->ret < 0))
