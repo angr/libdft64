@@ -150,3 +150,51 @@ tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
   }
   return ts;
 }
+
+/*
+ * get the tag value of a long word (i.e., 4 bytes) from the tagmap
+ *
+ * @addr:	the virtual address
+ *
+ * returns:	the tag value (e.g., 0, 1,...)
+ */
+tag_t tagmap_getl(size_t addr) {
+    return tag_combine(tagmap_getw(addr), tagmap_getw(addr+2));
+}
+
+/*
+ * get the tag value of a word (i.e., 2 bytes) from the tagmap
+ *
+ * @addr:	the virtual address
+ *
+ * returns:	the tag value (e.g., 0, 1,...)
+ */
+tag_t tagmap_getw(size_t addr) {
+    return tag_combine(tagmap_getb(addr), tagmap_getb(addr+1));
+}
+
+/*
+ * tag an arbitrary number of bytes on the virtual address space
+ *
+ * in case the number of bytes can be handled efficiently (e.g.,
+ * tag a byte, word, long, or quad) then we use one the previous
+ * functions. In all other cases, we try to align the number of
+ * bits that needs to be asserted for reusing the set{b, w, l ,q}()
+ * functions as much as possible
+ *
+ * @addr:	the virtual address
+ * @num:	the number of bytes to tag
+ */
+void tagmap_setn(size_t addr, size_t num) {
+    for (size_t i = addr; i < addr + num; i++)
+        tagmap_setb(i);
+}
+
+/*
+ * tag a byte on the virtual address space
+ *
+ * @addr:	the virtual address
+ */
+void PIN_FAST_ANALYSIS_CALL tagmap_setb(size_t addr) {
+	tag_dir_setb(tag_dir, addr, tag_traits<tag_t>::set_val);
+}

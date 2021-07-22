@@ -84,5 +84,9 @@ tag_t tagmap_getn(ADDRINT addr, unsigned int size);
 tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n);
 void tagmap_clrb(ADDRINT addr);
 void tagmap_clrn(ADDRINT, UINT32);
+tag_t tagmap_getl(size_t addr);
+tag_t tagmap_getw(size_t addr);
+void tagmap_setn(size_t addr, size_t num);
+void PIN_FAST_ANALYSIS_CALL tagmap_setb(size_t addr);
 
 #endif /* __TAGMAP_H__ */
