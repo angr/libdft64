@@ -240,7 +240,7 @@ dta_instrument_jmp_call(INS ins)
 					IPOINT_BEFORE,
 					(AFUNPTR)assert_reg32,
 					IARG_FAST_ANALYSIS_CALL,
-					IARG_REG_VALUE, IARG_THREAD_ID,
+					IARG_THREAD_ID,
 					IARG_UINT32, REG32_INDX(reg),
 					IARG_REG_VALUE, reg,
 					IARG_END);
@@ -254,7 +254,7 @@ dta_instrument_jmp_call(INS ins)
 					IPOINT_BEFORE,
 					(AFUNPTR)assert_reg16,
 					IARG_FAST_ANALYSIS_CALL,
-					IARG_REG_VALUE, IARG_THREAD_ID,
+					IARG_THREAD_ID,
 					IARG_UINT32, REG16_INDX(reg),
 					IARG_REG_VALUE, reg,
 					IARG_END);
