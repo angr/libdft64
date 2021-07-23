@@ -25,6 +25,7 @@ tag set tags
 
 BDDTag bdd_tag;
 lb_type tag_traits<lb_type>::cleared_val = 0;
+lb_type tag_traits<lb_type>::set_val = 1;
 
 template <> lb_type tag_combine(lb_type const &lhs, lb_type const &rhs) {
   return bdd_tag.combine(lhs, rhs);
