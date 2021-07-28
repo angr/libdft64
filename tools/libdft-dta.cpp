@@ -37,6 +37,8 @@
  * 	- add support for recvmmsg(2)
  */
 
+#include <fstream>
+
 #include <errno.h>
 #include <sys/socket.h>
 #include <stdio.h>
@@ -74,9 +76,13 @@ extern syscall_desc_t syscall_desc[SYSCALL_MAX];
 /* set of interesting descriptors (sockets) */
 static set<int> fdset;
 
+std::ofstream trace_out_fh;
+
 /* log file path (auditing) */
 static KNOB<string> logpath(KNOB_MODE_WRITEONCE, "pintool", "l",
 		LOGFILE_DFL, "");
+
+static KNOB<string> tracepath(KNOB_MODE_WRITEONCE, "pintool", "t", "/tmp/trace.log", "Trace output file");
 
 /*
  * flag variables
@@ -365,14 +371,18 @@ post_read_hook(THREADID tid, syscall_ctx_t *ctx)
         /* read() was not successful; optimized branch */
         if (unlikely((long)ctx->ret <= 0))
                 return;
-	
+
 	/* taint-source */
-	if (fdset.find(ctx->arg[SYSCALL_ARG0]) != fdset.end())
-        	/* set the tag markings */
-	        tagmap_setn(ctx->arg[SYSCALL_ARG1], (size_t)ctx->ret);
+	if (fdset.find(ctx->arg[SYSCALL_ARG0]) != fdset.end()) {
+		// Record syscall number and arguments for replay
+		trace_out_fh << "[Syscall] Num: " << ctx->nr;
+		trace_out_fh << ", args: " << ctx->arg[0] << " " << ctx->arg[1] << " " << ctx->arg[2] << std::endl;
+		/* set the tag markings */
+		tagmap_setn(ctx->arg[SYSCALL_ARG1], (size_t)ctx->ret);
+	}
 	else
-        	/* clear the tag markings */
-	        tagmap_clrn(ctx->arg[SYSCALL_ARG1], (size_t)ctx->ret);
+		/* clear the tag markings */
+		tagmap_clrn(ctx->arg[SYSCALL_ARG1], (size_t)ctx->ret);
 }
 
 /*
@@ -395,7 +405,8 @@ post_readv_hook(THREADID tid, syscall_ctx_t *ctx)
 	/* readv() was not successful; optimized branch */
 	if (unlikely((long)ctx->ret <= 0))
 		return;
-	
+
+	trace_out_fh << "[Syscall] Num: " << ctx->nr << ", syscall not supported" << std::endl;
 	/* get the descriptor */
 	it = fdset.find((int)ctx->arg[SYSCALL_ARG0]);
 
@@ -493,6 +504,10 @@ post_open_hook(THREADID tid, syscall_ctx_t *ctx)
 		fdset.insert((int)ctx->ret);
 }
 
+void cleanup(int32_t code, void* v) {
+    trace_out_fh.close();
+}
+
 /* 
  * DTA
  *
@@ -515,6 +530,12 @@ main(int argc, char **argv)
 	if (unlikely(libdft_init() != 0))
 		/* failed */
 		goto err;
+
+	trace_out_fh.open(tracepath.Value().c_str(), ios::out | ios::trunc);
+	if (unlikely(!trace_out_fh)) {
+		fprintf(stderr, "Failed to open %s. Exiting!\n", tracepath.Value().c_str());
+		goto err;
+	}
 	
 	/* 
 	 * handle control transfer instructions
@@ -575,6 +596,8 @@ main(int argc, char **argv)
 	/* add stdin to the interesting descriptors set */
 	if (stdin_.Value() != 0)
 		fdset.insert(STDIN_FILENO);
+
+	PIN_AddFiniFunction(cleanup, 0);
 
 	/* start Pin */
 	PIN_StartProgram();
