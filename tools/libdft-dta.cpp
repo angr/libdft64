@@ -504,6 +504,38 @@ post_open_hook(THREADID tid, syscall_ctx_t *ctx)
 		fdset.insert((int)ctx->ret);
 }
 
+/*
+ * Track socket fds
+ */
+
+static void post_socket_hook(THREADID tid, syscall_ctx_t *ctx) {
+	if (unlikely((long)ctx->ret < 0)) {
+		return;
+	}
+	fdset.insert((int)ctx->ret);
+}
+
+static void post_socketpair_hook(THREADID tid, syscall_ctx_t *ctx) {
+	if (unlikely((long)ctx->ret < 0)) {
+		return;
+	}
+	// A pair of socket fds are stored in the last argument of the syscall
+	ADDRINT *fd_pair = (ADDRINT *)(ctx->arg[4]);
+	fdset.insert((int)fd_pair[0]);
+	fdset.insert((int)fd_pair[1]);
+}
+
+static void post_shutdown_hook(THREADID tid, syscall_ctx_t *ctx) {
+	if (unlikely((long)ctx->ret < 0)) {
+		return;
+	}
+
+	auto it = fdset.find((int)ctx->arg[SYSCALL_ARG0]);
+	if (likely(it != fdset.end())) {
+		fdset.erase(it);
+	}
+}
+
 void cleanup(int32_t code, void* v) {
     trace_out_fh.close();
 }
@@ -592,7 +624,15 @@ main(int argc, char **argv)
 		(void)syscall_set_post(&syscall_desc[__NR_creat],
 				post_open_hook);
 	}
-	
+
+	if (net.Value() != 0) {
+		(void)syscall_set_post(&syscall_desc[__NR_socket], post_socket_hook);
+		(void)syscall_set_post(&syscall_desc[__NR_accept], post_socket_hook);
+		(void)syscall_set_post(&syscall_desc[__NR_accept4], post_socket_hook);
+		(void)syscall_set_post(&syscall_desc[__NR_socketpair], post_socketpair_hook);
+		(void)syscall_set_post(&syscall_desc[__NR_shutdown], post_shutdown_hook);
+	}
+
 	/* add stdin to the interesting descriptors set */
 	if (stdin_.Value() != 0)
 		fdset.insert(STDIN_FILENO);
