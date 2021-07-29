@@ -363,7 +363,7 @@ dta_instrument_ret(INS ins)
 }
 
 /*
- * read(2) handler (taint-source)
+ * read(2) and recvfrom(2) handler (taint-source)
  */
 static void
 post_read_hook(THREADID tid, syscall_ctx_t *ctx)
@@ -631,6 +631,7 @@ main(int argc, char **argv)
 		(void)syscall_set_post(&syscall_desc[__NR_accept4], post_socket_hook);
 		(void)syscall_set_post(&syscall_desc[__NR_socketpair], post_socketpair_hook);
 		(void)syscall_set_post(&syscall_desc[__NR_shutdown], post_shutdown_hook);
+		(void)syscall_set_post(&syscall_desc[__NR_recvfrom], post_read_hook);
 	}
 
 	/* add stdin to the interesting descriptors set */
